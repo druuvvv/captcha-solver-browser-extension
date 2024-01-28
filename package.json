@@ -1,0 +1,12 @@
+{
+  "name": "extension",
+  "version": "1.0.0",
+  "description": "somthing",
+  "main": "main.js",
+  "scripts": {},
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dir": "^0.1.2"
+  }
+}
