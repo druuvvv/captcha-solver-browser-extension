@@ -3,8 +3,8 @@ function extensionCode(){
 
     async function imageToCanvas(imgElement) {
         var tries = 0;
-        const retryDelay = 100;
-        while(tries < 5){
+        const retryDelay = 500;
+        while(tries < 10){
             try{
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
@@ -32,14 +32,16 @@ function extensionCode(){
     function findInputTag(element){
         let parentTag = element.parentNode; // find parent node of the captcha image
         let possibleInputTag = [];
-        
+        let elementWithOnclick = null
         // recursively keep going up the DOM tree untill an input tag is found
         // this input tag will be closest to the captcha image as it belongs to its closest parent Node
         while(possibleInputTag.length == 0){
             possibleInputTag = parentTag.getElementsByTagName("input");
+            elementWithOnclick = parentTag.querySelector('[onclick]');
             parentTag = parentTag.parentNode;   
         }
-        return possibleInputTag[0];
+        const inputTag = possibleInputTag[0];
+        return {inputTag , elementWithOnclick};
     }
     
     async function apiCall(binaryData){
@@ -57,36 +59,14 @@ function extensionCode(){
         return captchaCode;
     }
     
-    function updateInputBox(captchaCode , elt){
-        const inputTag = findInputTag(elt);
-        inputTag.value = captchaCode;
+    let isCodeRunning = false;
 
-        // Stop the mutation observer until the URL changes
-        observer.disconnect();
+    function updateInputBox(captchaCode, elt) {
+        const { inputTag, elementWithOnclick } = findInputTag(elt);
+        inputTag.value = captchaCode;
+        elementWithOnclick.removeEventListener("click", extensionCode);
+        elementWithOnclick.addEventListener("click", extensionCode);
     }
-    
-    // async function convertToBase64(imgURL ,element){
-    //     fetch(imgURL)
-    //     .then(response => response.blob())
-    //     .then(blob => {
-    //         // Create a FileReader to read the blob as Data URL
-    //         var reader = new FileReader();
-    
-    //         reader.onload = function () {
-    //             // Get the Base64 representation of the image
-    //             var base64String = reader.result;
-    
-    //             apiCall(base64String)
-    //             .then(response => updateInputBox(response , element))
-                
-    //         };
-    
-    //         // Read the blob as a Data URL
-    //         reader.readAsDataURL(blob);
-    //     })
-    //     .catch(error => console.error('Error fetching the image:', error));
-    
-    // }
     
     const img = document.getElementsByTagName("img");
     
@@ -99,7 +79,6 @@ function extensionCode(){
     
         if(className.includes("captcha") || idName.includes("captcha") || altInfo.includes("captcha")){
             observer.disconnect();
-            console.log(elt)
             imageToCanvas(elt)
             .then(binaryData => apiCall(binaryData)) // apiCall to convert the image to captcha code
             .then(response => updateInputBox(response , elt)) // update the input box with the captcha code

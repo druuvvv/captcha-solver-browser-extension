@@ -8,8 +8,10 @@ def url():
     if request.method == 'POST':
         print("request recieved")
         returnedValue = captchaSolver.binaryImgToOpenCV(request.get_json())
-        print("returnedValue")
-        return jsonify("answer"), 200
+        text = returnedValue
+        returnedValue = ''.join(i for i in text if ord(i)<128)
+        print(returnedValue)
+        return jsonify(returnedValue), 200
     
     return "bruh" , 200
 
